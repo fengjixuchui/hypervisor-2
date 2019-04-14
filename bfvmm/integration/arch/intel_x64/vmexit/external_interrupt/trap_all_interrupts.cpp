@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -46,7 +46,7 @@ public:
 
     bool
     test_external_interrupt_handler(
-        gsl::not_null<vcpu_t *> vcpu, external_interrupt_handler::info_t &info)
+        vcpu_t *vcpu, external_interrupt_handler::info_t &info)
     {
         bfignored(vcpu);
 

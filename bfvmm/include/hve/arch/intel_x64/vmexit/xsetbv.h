@@ -28,22 +28,6 @@
 #include <bfdelegate.h>
 
 // -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-// -----------------------------------------------------------------------------
 // Definitions
 // -----------------------------------------------------------------------------
 
@@ -56,7 +40,7 @@ class vcpu;
 ///
 /// Provides an interface for registering handlers for mov-dr exits.
 ///
-class EXPORT_HVE xsetbv_handler
+class xsetbv_handler
 {
 public:
 
@@ -104,7 +88,7 @@ public:
     /// handlers
     ///
     using handler_delegate_t =
-        delegate<bool(vcpu_t, info_t &)>;
+        delegate<bool(vcpu *, info_t &)>;
 
     /// Constructor
     ///
@@ -138,7 +122,7 @@ public:
 
     /// @cond
 
-    bool handle(vcpu_t vcpu);
+    bool handle(vcpu *vcpu);
 
     /// @endcond
 
@@ -159,6 +143,8 @@ public:
 
     /// @endcond
 };
+
+using xsetbv_handler_delegate_t = xsetbv_handler::handler_delegate_t;
 
 }
 

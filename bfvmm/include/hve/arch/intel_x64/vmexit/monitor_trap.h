@@ -28,22 +28,6 @@
 #include <bfdelegate.h>
 
 // -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-// -----------------------------------------------------------------------------
 // Definitions
 // -----------------------------------------------------------------------------
 
@@ -57,34 +41,9 @@ class vcpu;
 /// Provides an interface for registering handlers for monitor-trap flag
 /// exits.
 ///
-class EXPORT_HVE monitor_trap_handler
+class monitor_trap_handler
 {
 public:
-
-    /// Info
-    ///
-    /// This struct is created by monitor_trap_handler::handle before being
-    /// passed to each registered handler.
-    ///
-    struct info_t {
-
-        /// Ignore clear
-        ///
-        /// If true, do not disable the monitor trap flag after your
-        /// registered handler returns true.
-        ///
-        /// default: false
-        ///
-        bool ignore_clear;
-    };
-
-    /// Handler delegate type
-    ///
-    /// The type of delegate clients must use when registering
-    /// handlers
-    ///
-    using handler_delegate_t =
-        delegate<bool(gsl::not_null<vcpu *>, info_t &)>;
 
     /// Constructor
     ///
@@ -112,7 +71,7 @@ public:
     ///
     /// @param d the handler to call when an exit occurs
     ///
-    void add_handler(const handler_delegate_t &d);
+    void add_handler(const ::handler_delegate_t &d);
 
     /// Enable
     ///
@@ -130,14 +89,14 @@ public:
 
     /// @cond
 
-    bool handle(gsl::not_null<vcpu *> vcpu);
+    bool handle(vcpu *vcpu);
 
     /// @endcond
 
 private:
 
     vcpu *m_vcpu;
-    std::list<handler_delegate_t> m_handlers;
+    std::list<::handler_delegate_t> m_handlers;
 
 public:
 

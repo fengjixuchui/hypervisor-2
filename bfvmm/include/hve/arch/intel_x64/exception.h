@@ -31,7 +31,7 @@
 extern const char *
 vector_to_str(uint64_t vec) noexcept;
 
-extern "C" EXPORT_SYM void
+extern "C" void
 default_esr(
     uint64_t vector, uint64_t ec, bool ec_valid, uint64_t *regs, void *vcpu) noexcept;
 
@@ -41,6 +41,7 @@ set_default_esrs(
 
 extern "C" void _esr0(void) noexcept;
 extern "C" void _esr1(void) noexcept;
+extern "C" void _esr2(void) noexcept;
 extern "C" void _esr3(void) noexcept;
 extern "C" void _esr4(void) noexcept;
 extern "C" void _esr5(void) noexcept;

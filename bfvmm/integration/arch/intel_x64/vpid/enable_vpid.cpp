@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -45,7 +45,7 @@ public:
         bfvmm::intel_x64::vcpu{id}
     {
         this->add_hlt_delegate(
-            hlt_delegate_t::create<test_hlt_delegate>()
+            vcpu_delegate_t::create<test_hlt_delegate>()
         );
 
         this->enable_vpid();

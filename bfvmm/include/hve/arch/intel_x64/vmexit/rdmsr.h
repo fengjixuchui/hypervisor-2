@@ -30,20 +30,10 @@
 #include "../exit_handler.h"
 
 // -----------------------------------------------------------------------------
-// Exports
+// Helpers
 // -----------------------------------------------------------------------------
 
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
+::x64::msrs::value_type emulate_rdmsr(::x64::msrs::field_type msr);
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -59,7 +49,7 @@ class vcpu;
 /// Provides an interface for registering handlers for rdmsr exits
 /// Handlers can be registered a specific MSR address.
 ///
-class EXPORT_HVE rdmsr_handler
+class rdmsr_handler
 {
 public:
 
@@ -75,15 +65,11 @@ public:
         ///
         /// The address of the msr the guest tried to read from.
         ///
-        /// default: vmcs->save_state()->rcx
-        ///
         uint32_t msr;
 
         /// Value (in/out)
         ///
         /// The value of from the read to update guest state with.
-        ///
-        /// default: exit_handler::emulate_rdmsr(vmcs->save_state()->rcx)
         ///
         uint64_t val;
 
@@ -110,7 +96,7 @@ public:
     /// handlers
     ///
     using handler_delegate_t =
-        delegate<bool(gsl::not_null<vcpu *>, info_t &)>;
+        delegate<bool(vcpu *, info_t &)>;
 
     /// Constructor
     ///
@@ -248,7 +234,7 @@ public:
 
     /// @cond
 
-    bool handle(gsl::not_null<vcpu *> vcpu);
+    bool handle(vcpu *vcpu);
 
     /// @endcond
 
@@ -273,6 +259,8 @@ public:
 
     /// @endcond
 };
+
+using rdmsr_handler_delegate_t = rdmsr_handler::handler_delegate_t;
 
 }
 

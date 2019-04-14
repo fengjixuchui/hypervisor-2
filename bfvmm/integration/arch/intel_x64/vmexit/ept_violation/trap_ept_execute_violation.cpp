@@ -28,8 +28,8 @@
 
 #include <bfcallonce.h>
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -64,7 +64,7 @@ public:
         });
 
         this->add_hlt_delegate(
-            hlt_delegate_t::create<test_hlt_delegate>()
+            vcpu_delegate_t::create<test_hlt_delegate>()
         );
 
         this->add_ept_execute_violation_handler(
@@ -78,7 +78,7 @@ public:
 
     bool
     test_execute_violation_handler(
-        gsl::not_null<vcpu_t *> vcpu, ept_violation_handler::info_t &info)
+        vcpu_t *vcpu, ept_violation_handler::info_t &info)
     {
         bfignored(vcpu);
         bfignored(info);

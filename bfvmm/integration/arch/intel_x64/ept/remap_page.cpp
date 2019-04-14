@@ -28,8 +28,8 @@
 
 #include <bfcallonce.h>
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -65,12 +65,12 @@ public:
     explicit vcpu(vcpuid::type id) :
         bfvmm::intel_x64::vcpu{id}
     {
-        this->add_cpuid_handler(
-            42, cpuid_handler::handler_delegate_t::create<vcpu, &vcpu::test_cpuid_handler>(this)
+        this->add_cpuid_emulator(
+            42, handler_delegate_t::create<vcpu, &vcpu::test_cpuid_handler>(this)
         );
 
         this->add_hlt_delegate(
-            hlt_delegate_t::create<test_hlt_delegate>()
+            vcpu_delegate_t::create<test_hlt_delegate>()
         );
 
         for (auto &elem : buffer1) {
@@ -88,11 +88,9 @@ public:
     ~vcpu() override = default;
 
     bool
-    test_cpuid_handler(
-        gsl::not_null<vcpu_t *> vcpu, cpuid_handler::info_t &info)
+    test_cpuid_handler(vcpu_t *vcpu)
     {
         bfignored(vcpu);
-        bfignored(info);
 
         bfn::call_once(flag, [&] {
             auto [gpa1, unused1] = this->gva_to_gpa(buffer1.data());

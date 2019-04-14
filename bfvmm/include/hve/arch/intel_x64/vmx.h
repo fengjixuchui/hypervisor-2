@@ -26,27 +26,6 @@
 #include "../../../memory_manager/memory_manager.h"
 
 // -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
-
-// -----------------------------------------------------------------------------
 // Definitions
 // -----------------------------------------------------------------------------
 
@@ -61,7 +40,7 @@ namespace bfvmm::intel_x64
 ///
 /// This class is managed by vcpu_intel_x64
 ///
-class EXPORT_HVE vmx
+class vmx
 {
 public:
 
@@ -78,24 +57,6 @@ public:
     /// @ensures none
     ///
     ~vmx();
-
-    /// Enable
-    ///
-    /// Enables vmx in hardware and executes the vmxon instruction
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    void enable();
-
-    /// Disable
-    ///
-    /// Runs the vmxoff instruction and disables vmx in hardware
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    void disable();
 
 private:
 
@@ -134,9 +95,5 @@ public:
 };
 
 }
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif

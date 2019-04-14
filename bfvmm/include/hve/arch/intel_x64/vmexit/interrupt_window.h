@@ -28,22 +28,6 @@
 #include "../interrupt_queue.h"
 
 // -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-// -----------------------------------------------------------------------------
 // Definitions
 // -----------------------------------------------------------------------------
 
@@ -54,9 +38,7 @@ class vcpu;
 
 /// Interrupt window
 ///
-/// Provides an interface for registering handlers of the interrupt-window exit.
-///
-class EXPORT_HVE interrupt_window_handler
+class interrupt_window_handler
 {
 public:
 
@@ -122,7 +104,7 @@ public:
 
     /// @cond
 
-    bool handle(gsl::not_null<vcpu *> vcpu);
+    bool handle(vcpu *vcpu);
 
     /// @endcond
 

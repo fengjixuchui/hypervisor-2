@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -29,13 +29,10 @@ using namespace bfvmm::intel_x64;
 // -----------------------------------------------------------------------------
 
 bool
-test_cpuid_handler(
-    gsl::not_null<vcpu_t *> vcpu, cpuid_handler::info_t &info)
+test_cpuid_handler(vcpu_t *vcpu)
 {
-    bfignored(vcpu);
-
-    info.rax = 42;
-    info.rcx = 42;
+    vcpu->set_rax(42);
+    vcpu->set_rcx(42);
 
     return true;
 }
@@ -72,11 +69,11 @@ public:
         bfvmm::intel_x64::vcpu{id}
     {
         this->add_hlt_delegate(
-            hlt_delegate_t::create<test_hlt_delegate>()
+            vcpu_delegate_t::create<test_hlt_delegate>()
         );
 
-        this->add_cpuid_handler(
-            42, cpuid_handler::handler_delegate_t::create<test_cpuid_handler>()
+        this->add_cpuid_emulator(
+            42, handler_delegate_t::create<test_cpuid_handler>()
         );
     }
 

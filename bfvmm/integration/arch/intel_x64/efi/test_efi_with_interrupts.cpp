@@ -28,8 +28,8 @@
 
 #include <bfcallonce.h>
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -68,22 +68,18 @@ public:
 
     bool
     external_interrupt_handler(
-        gsl::not_null<vcpu_t *> v, external_interrupt_handler::info_t &info)
+        vcpu_t *vcpu, external_interrupt_handler::info_t &info)
     {
-        bfignored(v);
-        this->queue_external_interrupt(info.vector);
-
+        vcpu->queue_external_interrupt(info.vector);
         return true;
     }
 
     bool
     ia32_apic_base__wrmsr_handler(
-        gsl::not_null<vcpu_t *> v, wrmsr_handler::info_t &info)
+        vcpu_t *v, wrmsr_handler::info_t &info)
     {
-        bfignored(v);
-
         if (::intel_x64::msrs::ia32_apic_base::extd::is_enabled(info.val)) {
-            this->add_external_interrupt_handler(
+            v->add_external_interrupt_handler(
                 external_interrupt_handler::handler_delegate_t::create<vcpu, &vcpu::external_interrupt_handler>(this)
             );
         }

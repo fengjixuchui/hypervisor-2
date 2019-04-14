@@ -22,38 +22,7 @@
 #ifndef VMCS_INTEL_X64_H
 #define VMCS_INTEL_X64_H
 
-#include <bftypes.h>
-#include <bfvcpuid.h>
-
-#include "save_state.h"
-#include "check.h"
-#include "../x64/gdt.h"
-#include "../x64/idt.h"
-#include "../x64/tss.h"
-
 #include "../../../memory_manager/memory_manager.h"
-#include "../../../vmm_types.h"
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -81,7 +50,7 @@ class vcpu;
 /// for more details. Pro tip: auto-complete works great with the VMCS
 /// namespace logic.
 ///
-class EXPORT_HVE vmcs
+class vmcs
 {
 public:
 
@@ -92,23 +61,14 @@ public:
     ///
     /// @param vcpu The vCPU associated with this VMCS
     ///
-    vmcs(vcpu_t vcpu);
+    vmcs(gsl::not_null<vcpu *> vcpu);
 
     /// Destructor
     ///
     /// @expects none
     /// @ensures none
     ///
-    ~vmcs() = default;
-
-    /// Init
-    ///
-    /// Initizlizes the VMCS stucture to be used by hardware
-    ///
-    /// @expects VMX is enabled
-    /// @ensures none
-    ///
-    void init();
+    VIRTUAL ~vmcs() = default;
 
     /// Launch
     ///
@@ -120,7 +80,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    void launch();
+    VIRTUAL void launch();
 
     /// Resume
     ///
@@ -142,7 +102,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    void resume();
+    VIRTUAL void resume();
 
     /// Promote
     ///
@@ -161,7 +121,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    void promote();
+    VIRTUAL void promote();
 
     /// Load
     ///
@@ -179,7 +139,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    void load();
+    VIRTUAL void load();
 
     /// Clear
     ///
@@ -193,7 +153,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    void clear();
+    VIRTUAL void clear();
 
     /// Check
     ///
@@ -205,75 +165,14 @@ public:
     /// @return returns true if the VMCS is configured properly, false
     ///     otherwise
     ///
-    bool check() const noexcept;
-
-    /// Save State
-    ///
-    /// Returns the VMCS's save state. This is state that is above and beyond
-    /// what the VMCS stores, includng the CPU's registers, vcpuid and
-    /// exit handler pointer.
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @return returns the VMCS's save state.
-    ///
-    save_state_t *save_state() const
-    { return m_save_state.get(); }
-
-    /// MSR bitmap
-    ///
-    /// Returns the VMCS's msr bitmap
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @return returns the VMCS's msr bitmap
-    ///
-    gsl::not_null<uint8_t *> msr_bitmap() const
-    { return m_msr_bitmap.get(); }
-
-    /// IO bitmap a
-    ///
-    /// Returns the VMCS's io bitmap a
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @return returns the VMCS's io bitmap a
-    ///
-    gsl::not_null<uint8_t *> io_bitmap_a() const
-    { return m_io_bitmap_a.get(); }
-
-    /// IO bitmap b
-    ///
-    /// Returns the VMCS's io bitmap b
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @return returns the VMCS's io bitmap b
-    ///
-    gsl::not_null<uint8_t *> io_bitmap_b() const
-    { return m_io_bitmap_b.get(); }
+    VIRTUAL bool check() const noexcept;
 
 private:
 
-    page_ptr<save_state_t> m_save_state;
+    vcpu *m_vcpu;
+
     page_ptr<uint32_t> m_vmcs_region;
     uintptr_t m_vmcs_region_phys;
-    page_ptr<uint8_t> m_msr_bitmap;
-    page_ptr<uint8_t> m_io_bitmap_a;
-    page_ptr<uint8_t> m_io_bitmap_b;
-    std::unique_ptr<gsl::byte[]> m_ist1;
-    std::unique_ptr<gsl::byte[]> m_stack;
-    x64::tss m_host_tss{};
-    x64::gdt m_host_gdt{512};
-    x64::idt m_host_idt{256};
-
-    void write_host_state(vcpuid::type vcpuid);
-    void write_guest_state();
-    void write_control_state();
 
 public:
 
@@ -290,8 +189,6 @@ public:
 
 }
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+using vmcs_t = bfvmm::intel_x64::vmcs;
 
 #endif

@@ -34,6 +34,10 @@
 #include <bfplatform.h>
 #include <bfdriverinterface.h>
 
+#define STATUS_STOPPED 0
+#define STATUS_RUNNING 1
+#define STATUS_SUSPEND 2
+
 EXTERN_C_START
 
 DRIVER_INITIALIZE DriverEntry;

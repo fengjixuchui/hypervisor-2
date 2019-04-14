@@ -30,22 +30,6 @@
 #include "../exit_handler.h"
 
 // -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-// -----------------------------------------------------------------------------
 // Definitions
 // -----------------------------------------------------------------------------
 
@@ -59,7 +43,7 @@ class vcpu;
 /// Provides an interface for registering handlers for EPT violation
 /// exits.
 ///
-class EXPORT_HVE ept_violation_handler
+class ept_violation_handler
 {
 public:
 
@@ -106,7 +90,7 @@ public:
     /// handlers
     ///
     using handler_delegate_t =
-        delegate<bool(gsl::not_null<vcpu *>, info_t &)>;
+        delegate<bool(vcpu *, info_t &)>;
 
     /// Constructor
     ///
@@ -212,15 +196,15 @@ public:
 
     /// @cond
 
-    bool handle(gsl::not_null<vcpu *> vcpu);
+    bool handle(vcpu *vcpu);
 
     /// @endcond
 
 private:
 
-    bool handle_read(gsl::not_null<vcpu *> vcpu, info_t &info);
-    bool handle_write(gsl::not_null<vcpu *> vcpu, info_t &info);
-    bool handle_execute(gsl::not_null<vcpu *> vcpu, info_t &info);
+    bool handle_read(vcpu *vcpu, info_t &info);
+    bool handle_write(vcpu *vcpu, info_t &info);
+    bool handle_execute(vcpu *vcpu, info_t &info);
 
 private:
 
@@ -246,6 +230,8 @@ public:
 
     /// @endcond
 };
+
+using ept_violation_handler_delegate_t = ept_violation_handler::handler_delegate_t;
 
 }
 

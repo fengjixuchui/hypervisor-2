@@ -28,8 +28,8 @@
 
 #include <bfcallonce.h>
 
-#include <bfvmm/vcpu/vcpu_factory.h>
-#include <bfvmm/hve/arch/intel_x64/vcpu.h>
+#include <vcpu/vcpu_factory.h>
+#include <hve/arch/intel_x64/vcpu.h>
 
 using namespace bfvmm::intel_x64;
 
@@ -68,7 +68,7 @@ public:
 
     bool
     test_misconfiguration_handler(
-        gsl::not_null<vcpu_t *> vcpu, ept_misconfiguration_handler::info_t &info)
+        vcpu_t *vcpu, ept_misconfiguration_handler::info_t &info)
     {
         bfignored(vcpu);
         bfignored(info);

@@ -22,6 +22,7 @@
 #ifndef VCPU_H
 #define VCPU_H
 
+#include <any>
 #include <list>
 #include <string>
 #include <memory>
@@ -31,28 +32,12 @@
 #include <bfvcpuid.h>
 #include <bfobject.h>
 #include <bfdelegate.h>
-#include <bfarch.h>
 
 // -----------------------------------------------------------------------------
-// Exports
+// Delegate Types
 // -----------------------------------------------------------------------------
 
-#include <bfexports.h>
-
-#ifndef STATIC_VCPU
-#ifdef SHARED_VCPU
-#define EXPORT_VCPU EXPORT_SYM
-#else
-#define EXPORT_VCPU IMPORT_SYM
-#endif
-#else
-#define EXPORT_VCPU
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
+using vcpu_delegate_t = delegate<void(bfobject *)>;      ///< vCPU delegate type
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -108,14 +93,9 @@ namespace bfvmm
 /// Also note that the vCPU is a base class. The vcpu_factory really should
 /// be creating architectural vCPUs as this class doesn't do much.
 ///
-class EXPORT_VCPU vcpu
+class vcpu
 {
 public:
-
-    using run_delegate_t = delegate<void(bfobject *)>;      ///< Run delegate type
-    using hlt_delegate_t = delegate<void(bfobject *)>;      ///< Halt delegate type
-    using init_delegate_t = delegate<void(bfobject *)>;     ///< Init delegate type
-    using fini_delegate_t = delegate<void(bfobject *)>;     ///< Fini delegate type
 
     /// Constructor
     ///
@@ -295,7 +275,7 @@ public:
     ///
     /// @param d the delegate to add to the vcpu
     ///
-    VIRTUAL void add_run_delegate(const run_delegate_t &d) noexcept
+    VIRTUAL void add_run_delegate(const vcpu_delegate_t &d) noexcept
     { m_run_delegates.push_front(std::move(d)); }
 
     /// Add Halt Delegate
@@ -309,7 +289,7 @@ public:
     ///
     /// @param d the delegate to add to the vcpu
     ///
-    VIRTUAL void add_hlt_delegate(const hlt_delegate_t &d) noexcept
+    VIRTUAL void add_hlt_delegate(const vcpu_delegate_t &d) noexcept
     { m_hlt_delegates.push_front(std::move(d)); }
 
     /// Add Init Delegate
@@ -323,7 +303,7 @@ public:
     ///
     /// @param d the delegate to add to the vcpu
     ///
-    VIRTUAL void add_init_delegate(const init_delegate_t &d) noexcept
+    VIRTUAL void add_init_delegate(const vcpu_delegate_t &d) noexcept
     { m_init_delegates.push_front(std::move(d)); }
 
     /// Add Fini Delegate
@@ -337,8 +317,40 @@ public:
     ///
     /// @param d the delegate to add to the vcpu
     ///
-    VIRTUAL void add_fini_delegate(const fini_delegate_t &d) noexcept
+    VIRTUAL void add_fini_delegate(const vcpu_delegate_t &d) noexcept
     { m_fini_delegates.push_front(std::move(d)); }
+
+    /// Get User Data
+    ///
+    /// Note, you must be explicit about whether you wish to get an l-value,
+    /// r-value or reference.
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @return returns user data that is stored in the vCPU
+    ///
+    template<typename T>
+    T data()
+    { return std::any_cast<T>(m_data); }
+
+    /// Set User Data
+    ///
+    /// Provides the ability for an extension to store data in the vCPU without
+    /// having to subclass the vCPU if that is not desired in a type-safe way.
+    /// It should be noted that this uses std::any which does perform a malloc.
+    /// We also use the same API structure as std::any, so you need to be
+    /// explicit about whether you wish to have an l-value, r-value or
+    /// reference when using the get function.
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @param t the value to store
+    ///
+    template<typename T>
+    void set_data(T &&t)
+    { m_data = std::any(t); }
 
 private:
 
@@ -347,10 +359,12 @@ private:
     bool m_is_running{false};
     bool m_is_initialized{false};
 
-    std::list<run_delegate_t> m_run_delegates;
-    std::list<hlt_delegate_t> m_hlt_delegates;
-    std::list<init_delegate_t> m_init_delegates;
-    std::list<fini_delegate_t> m_fini_delegates;
+    std::list<vcpu_delegate_t> m_run_delegates;
+    std::list<vcpu_delegate_t> m_hlt_delegates;
+    std::list<vcpu_delegate_t> m_init_delegates;
+    std::list<vcpu_delegate_t> m_fini_delegates;
+
+    std::any m_data;
 
 public:
 
@@ -364,17 +378,6 @@ public:
 
     /// @endcond
 };
-
 }
-
-#if defined(BF_INTEL_X64)
-#include "../hve/arch/intel_x64/vcpu.h"
-#else
-#   error "vcpu.h: unsupported architecture"
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif
