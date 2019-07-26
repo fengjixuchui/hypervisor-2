@@ -19,20 +19,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-add_library(bfvmm_debug)
+cmake_minimum_required(VERSION 3.6)
+project(bfvmm C CXX)
 
-target_link_libraries(bfvmm_debug PUBLIC ${PREFIX}::bfroot)
-target_include_directories(bfvmm_debug PUBLIC
-    $<${BUILD_INCLUDE}:${PROJECT_ROOT}/include>
-    $<${BUILD_INCLUDE}:${PROJECT_ROOT}/../bfintrinsics/include>
-    $<${BUILD_INCLUDE}:${PROJECT_ROOT}/../bfsdk/include>
-)
-target_sources(bfvmm_debug PRIVATE
-    debug_ring/debug_ring.cpp
-    serial/serial_ns16550a.cpp
-    $<$<STREQUAL:${BUILD_TARGET_ARCH},x86_64>:arch/x64/serial_ns16550a.cpp>
-    $<$<STREQUAL:${BUILD_TARGET_ARCH},aarch64>:arch/aarch64/serial_ns16550a.cpp>
-    $<$<NOT:$<BOOL:${ENABLE_MOCKING}>>:unistd.cpp>
+include(${SOURCE_CMAKE_DIR}/project.cmake)
+init_project(
+    INCLUDES ${CMAKE_CURRENT_LIST_DIR}/../include
 )
 
-install(TARGETS bfvmm_debug DESTINATION lib EXPORT bfvmm-${PREFIX}-targets)
+add_subdirectory(debug)
+add_subdirectory(memory_manager)
+add_subdirectory(hve)
+add_subdirectory(entry)
+
+install(FILES ../include/vmm.h DESTINATION include)
+install(DIRECTORY ../include/debug/ DESTINATION include/bfvmm/debug)
+install(DIRECTORY ../include/hve/ DESTINATION include/bfvmm/hve)
+install(DIRECTORY ../include/memory_manager/ DESTINATION include/bfvmm/memory_manager)
+install(DIRECTORY ../include/vcpu/ DESTINATION include/bfvmm/vcpu)

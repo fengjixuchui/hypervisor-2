@@ -253,26 +253,15 @@ control_register_handler::control_register_handler(
 {
     using namespace vmcs_n;
 
-    vcpu->add_handler(
+    vcpu->add_exit_handler_for_reason(
         exit_reason::basic_exit_reason::control_register_accesses,
-        ::handler_delegate_t::create<control_register_handler, &control_register_handler::handle>(this)
+    {&control_register_handler::handle, this}
     );
 
-    this->add_wrcr0_handler(
-        handler_delegate_t::create<default_wrcr0_handler>()
-    );
-
-    this->add_rdcr3_handler(
-        handler_delegate_t::create<default_rdcr3_handler>()
-    );
-
-    this->add_wrcr3_handler(
-        handler_delegate_t::create<default_wrcr3_handler>()
-    );
-
-    this->add_wrcr4_handler(
-        handler_delegate_t::create<default_wrcr4_handler>()
-    );
+    this->add_wrcr0_handler(default_wrcr0_handler);
+    this->add_rdcr3_handler(default_rdcr3_handler);
+    this->add_wrcr3_handler(default_wrcr3_handler);
+    this->add_wrcr4_handler(default_wrcr4_handler);
 }
 
 // -----------------------------------------------------------------------------

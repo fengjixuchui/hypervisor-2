@@ -19,18 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-add_library(bfvmm_vcpu)
-
-target_sources(bfvmm_vcpu PRIVATE vcpu.cpp)
-target_link_libraries(bfvmm_vcpu PUBLIC ${PREFIX}::bfroot)
-target_include_directories(bfvmm_vcpu PUBLIC
-    $<${BUILD_INCLUDE}:${PROJECT_ROOT}/include>
-    $<${BUILD_INCLUDE}:${PROJECT_ROOT}/../bfintrinsics/include>
-    $<${BUILD_INCLUDE}:${PROJECT_ROOT}/../bfsdk/include>
-)
-
-install(TARGETS bfvmm_vcpu DESTINATION lib EXPORT bfvmm-${PREFIX}-targets)
-
-if(PREFIX STREQUAL vmm)
-    install(DIRECTORY ../../include/vcpu/ DESTINATION include/bfvmm/vcpu)
-endif()
+set(CMAKE_BUILD_TYPE Release)
+set(ENABLE_COMPILER_WARNINGS ON)
+set(ENABLE_BUILD_EFI ON)

@@ -50,9 +50,16 @@ test_wrcr3_handler(vcpu_t *vcpu)
 }
 
 void
-test_hlt_delegate(bfobject *obj)
+vcpu_init_nonroot(vcpu_t *vcpu)
 {
-    bfignored(obj);
+    vcpu->add_rdcr3_handler(test_rdcr3_handler);
+    vcpu->add_wrcr3_handler(test_wrcr3_handler);
+}
+
+void
+vcpu_fini_nonroot_running(vcpu_t *vcpu)
+{
+    bfignored(vcpu);
 
     auto cr3 = ::intel_x64::cr3::get();
     ::intel_x64::cr3::set(cr3);
@@ -60,20 +67,4 @@ test_hlt_delegate(bfobject *obj)
     if (rdcr3_called && wrcr3_called) {
         bfdebug_pass(0, "test");
     }
-}
-
-void
-vcpu_init_nonroot(vcpu_t *vcpu)
-{
-    vcpu->add_hlt_delegate(
-        vcpu_delegate_t::create<test_hlt_delegate>()
-    );
-
-    vcpu->add_rdcr3_handler(
-        handler_delegate_t::create<test_rdcr3_handler>()
-    );
-
-    vcpu->add_wrcr3_handler(
-        handler_delegate_t::create<test_wrcr3_handler>()
-    );
 }

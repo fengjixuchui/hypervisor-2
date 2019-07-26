@@ -70,9 +70,9 @@ rdmsr_handler::rdmsr_handler(
 {
     using namespace vmcs_n;
 
-    vcpu->add_handler(
+    vcpu->add_exit_handler_for_reason(
         exit_reason::basic_exit_reason::rdmsr,
-        ::handler_delegate_t::create<rdmsr_handler, &rdmsr_handler::handle>(this)
+    {&rdmsr_handler::handle, this}
     );
 }
 
@@ -182,7 +182,7 @@ rdmsr_handler::handle(vcpu *vcpu)
         }
     }
 
-    if (m_default_handler.is_valid()) {
+    if (m_default_handler) {
         return m_default_handler(vcpu);
     }
 

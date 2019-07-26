@@ -19,49 +19,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-codecov:
-  notify:
-    require_ci_to_pass: no
+cmake_minimum_required(VERSION 3.6)
+project(bfvmm_test C CXX)
 
-coverage:
-  status:
-    project: yes
-    patch: no
-    changes: no
-  precision: 2
-  round: down
-  range: "100...100"
+include(${SOURCE_CMAKE_DIR}/project.cmake)
+init_project(
+    INCLUDES ${CMAKE_CURRENT_LIST_DIR}/../include
+)
 
-parsers:
-  gcov:
-    branch_detection:
-      conditional: no
-      loop: no
-      method: no
-      macro: no
+add_subdirectory(../src/debug ${CMAKE_CURRENT_BINARY_DIR}/src/debug)
+add_subdirectory(../src/hve ${CMAKE_CURRENT_BINARY_DIR}/src/hve)
+add_subdirectory(../src/memory_manager ${CMAKE_CURRENT_BINARY_DIR}/src/memory_manager)
 
-ignore:
-  - "bfintrinsics/**"
-  - "bfm/ioctl/arch/**"
-  - "bfvmm/include/test/**"
-  - "bfdriver/**"
+add_subdirectory(debug)
+add_subdirectory(hve)
+add_subdirectory(memory_manager)
 
-  # Remove Me
-  - "bfelf_loader/**"
-  - "bfvmm/include/hve/arch/intel_x64/ept/mmap.h"
-  - "bfvmm/include/hve/arch/intel_x64/vcpu.h"
-  - "bfvmm/include/hve/arch/x64/unmapper.h"
-  - "bfvmm/src/hve/arch/intel_x64/ept.cpp"
-  - "bfvmm/src/hve/arch/intel_x64/interrupt_queue.cpp"
-  - "bfvmm/src/hve/arch/intel_x64/microcode.cpp"
-  - "bfvmm/src/hve/arch/intel_x64/mtrrs.cpp"
-  - "bfvmm/src/hve/arch/intel_x64/vcpu.cpp"
-  - "bfvmm/src/hve/arch/intel_x64/vmexit/**"
-  - "bfvmm/src/hve/arch/intel_x64/vpid.cpp"
-  - "bfvmm/src/hve/arch/x64/unmapper.cpp"
-  # Remove Me
-
-comment:
-  layout: "header, diff, files"
-  behavior: default
-  require_changes: no
+install(DIRECTORY ../include/test/ DESTINATION include/bfvmm/test)
