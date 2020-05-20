@@ -25,6 +25,7 @@
 #include "vmexit/control_register.h"
 #include "vmexit/cpuid.h"
 #include "vmexit/ept_violation.h"
+#include "vmexit/exception.h"
 #include "vmexit/external_interrupt.h"
 #include "vmexit/init_signal.h"
 #include "vmexit/interrupt_window.h"
@@ -156,10 +157,11 @@ public:
     /// @param d the delegate to add to the vcpu
     ///
     VIRTUAL void add_clear_delegate(const vcpu_delegate_t &d) noexcept
-    { m_resume_delegates.push_front(std::move(d)); }
+    { m_clear_delegates.push_front(std::move(d)); }
 
 private:
 
+    void init_xsave();
     void write_host_state();
     void write_guest_state();
     void write_control_state();
@@ -479,6 +481,24 @@ public:
     ///
     VIRTUAL void add_default_ept_execute_violation_handler(
         const ::handler_delegate_t &d);
+
+    //--------------------------------------------------------------------------
+    // Exception
+    //--------------------------------------------------------------------------
+
+    /// Add Exceptin Handler
+    ///
+    /// Turns on exception handling for the given vector and adds an exception
+    /// handler to handle exceptions
+    ///
+    /// @expects
+    /// @ensures
+    ///
+    /// @param vector the exception vector to enable
+    /// @param d the delegate to call when an exit occurs
+    ///
+    VIRTUAL void add_exception_handler(
+        vmcs_n::value_type vector, const exception_handler::handler_delegate_t &d);
 
     //--------------------------------------------------------------------------
     // External Interrupt
@@ -932,6 +952,16 @@ public:
     /// @ensures
     ///
     VIRTUAL void disable_ept();
+
+    /// Invalidate EPT
+    ///
+    /// Invalidates TLB entries associated with the EPTP managed by the
+    /// m_ept_handler of this vcpu.
+    ///
+    /// @expects
+    /// @ensures
+    ///
+    VIRTUAL void invept();
 
     //==========================================================================
     // VPID
@@ -1789,10 +1819,30 @@ public:
     VIRTUAL void set_idt_limit(uint64_t val) noexcept;
     VIRTUAL uint64_t cr0() const noexcept;
     VIRTUAL void set_cr0(uint64_t val) noexcept;
+    VIRTUAL uint64_t cr2() const noexcept;
+    VIRTUAL void set_cr2(uint64_t val) noexcept;
     VIRTUAL uint64_t cr3() const noexcept;
     VIRTUAL void set_cr3(uint64_t val) noexcept;
     VIRTUAL uint64_t cr4() const noexcept;
     VIRTUAL void set_cr4(uint64_t val) noexcept;
+    VIRTUAL uint64_t cr8() const noexcept;
+    VIRTUAL void set_cr8(uint64_t val) noexcept;
+    VIRTUAL uint64_t dr0() const noexcept;
+    VIRTUAL void set_dr0(uint64_t val) noexcept;
+    VIRTUAL uint64_t dr1() const noexcept;
+    VIRTUAL void set_dr1(uint64_t val) noexcept;
+    VIRTUAL uint64_t dr2() const noexcept;
+    VIRTUAL void set_dr2(uint64_t val) noexcept;
+    VIRTUAL uint64_t dr3() const noexcept;
+    VIRTUAL void set_dr3(uint64_t val) noexcept;
+    VIRTUAL uint64_t dr6() const noexcept;
+    VIRTUAL void set_dr6(uint64_t val) noexcept;
+    VIRTUAL uint64_t dr7() const noexcept;
+    VIRTUAL void set_dr7(uint64_t val) noexcept;
+    VIRTUAL uint64_t xcr0() const noexcept;
+    VIRTUAL void set_xcr0(uint64_t val) noexcept;
+    VIRTUAL uint64_t ia32_xss() const noexcept;
+    VIRTUAL void set_ia32_xss(uint64_t val) noexcept;
     VIRTUAL uint64_t ia32_efer() const noexcept;
     VIRTUAL void set_ia32_efer(uint64_t val) noexcept;
     VIRTUAL uint64_t ia32_pat() const noexcept;
@@ -1906,6 +1956,8 @@ private:
 
     std::unique_ptr<gsl::byte[]> m_ist1;
     std::unique_ptr<gsl::byte[]> m_stack;
+    std::unique_ptr<gsl::byte[]> m_guest_xsaves_area;
+    std::unique_ptr<gsl::byte[]> m_host_xsaves_area;
 
     x64::tss m_host_tss{};
     x64::gdt m_host_gdt{512};
@@ -1921,6 +1973,7 @@ private:
     control_register_handler m_control_register_handler;
     cpuid_handler m_cpuid_handler;
     ept_violation_handler m_ept_violation_handler;
+    exception_handler m_exception_handler;
     external_interrupt_handler m_external_interrupt_handler;
     init_signal_handler m_init_signal_handler;
     interrupt_window_handler m_interrupt_window_handler;

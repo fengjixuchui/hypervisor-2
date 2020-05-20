@@ -19,11 +19,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef EPT_HANDLER_INTEL_X64_H
-#define EPT_HANDLER_INTEL_X64_H
+#ifndef VMEXIT_EXCEPTION_INTEL_X64_H
+#define VMEXIT_EXCEPTION_INTEL_X64_H
 
-#include "ept/mmap.h"
-#include "ept/helpers.h"
+#include <list>
+#include <unordered_map>
+
+#include <bfgsl.h>
+#include <bfdelegate.h>
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -34,67 +37,96 @@ namespace bfvmm::intel_x64
 
 class vcpu;
 
-/// EPT
+/// Exceptions
 ///
-/// Provides an interface for enabling EPT
+/// Provides an interface for registering handlers for exception
+/// exits.
 ///
-class ept_handler
+class exception_handler
 {
 public:
+
+    ///
+    /// Info
+    ///
+    /// This struct is created by exception_handler::handle before being
+    /// passed to each registered handler.
+    ///
+    struct info_t {
+
+        /// Vector (in)
+        ///
+        /// The vector that caused the exit
+        ///
+        /// default: vmcs_n::vm_exit_interruption_information::vector
+        ///
+        uint64_t vector{0};
+    };
+
+    /// Handler delegate type
+    ///
+    /// The type of delegate clients must use when registering
+    /// handlers
+    ///
+    using handler_delegate_t =
+        delegate<bool(vcpu *, info_t &)>;
 
     /// Constructor
     ///
     /// @expects
     /// @ensures
     ///
-    /// @param vcpu the vcpu object for this rdmsr handler
+    /// @param vcpu the vcpu object for this exception handler
     ///
-    ept_handler(
+    exception_handler(
         gsl::not_null<vcpu *> vcpu);
-
 
     /// Destructor
     ///
     /// @expects
     /// @ensures
     ///
-    ~ept_handler() = default;
+    ~exception_handler() = default;
 
-    /// Set EPTP
+public:
+
+    /// Add Handler
     ///
     /// @expects
     /// @ensures
     ///
-    /// @param map A pointer to the map to set EPTP to. If the pointer is
-    ///     a nullptr, EPT is disabled.
+    /// @param vector the exception vector to enable
+    /// @param d the handler to call when an exit occurs
     ///
-    void set_eptp(ept::mmap *map);
-
-    /// Invalidate EPT
-    ///
-    /// @expects
-    /// @ensures
-    ///
-    void invept();
-
-private:
-
-    vcpu *m_vcpu;
-    uint64_t m_eptp;
-    void (*m_invept)(uintptr_t);
+    void add_handler(vmcs_n::value_type vector, const handler_delegate_t &d);
 
 public:
 
     /// @cond
 
-    ept_handler(ept_handler &&) = default;
-    ept_handler &operator=(ept_handler &&) = default;
+    bool handle(vcpu *vcpu);
 
-    ept_handler(const ept_handler &) = delete;
-    ept_handler &operator=(const ept_handler &) = delete;
+    /// @endcond
+
+private:
+
+    vcpu *m_vcpu;
+    std::unordered_map<vmcs_n::value_type, std::list<handler_delegate_t>> m_handlers;
+
+public:
+
+    /// @cond
+
+    exception_handler(exception_handler &&) = default;
+    exception_handler &operator=(exception_handler &&) = default;
+
+    exception_handler(const exception_handler &) = delete;
+    exception_handler &operator=(const exception_handler &) = delete;
 
     /// @endcond
 };
+
+using exception_handler_delegate_t = exception_handler::handler_delegate_t;
 
 }
 
